@@ -1,1 +1,2 @@
-README
+To kill a process use
+- ps -x | grep ./server | xargs kill
