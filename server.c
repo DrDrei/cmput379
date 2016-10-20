@@ -5,10 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define	MY_PORT	2234
+// #define	MY_PORT	2234
 
-
-// 
 /* ---------------------------------------------------------------------
  This	is  a sample server which opens a stream socket and then awaits
  requests coming from client processes. In response for a request, the
@@ -17,16 +15,20 @@
  chines.
  --------------------------------------------------------------------- */
 
-int main() {
+int main(int argc, char *argv[]) {
 	int	sock, snew, fromlength, number, outnum;
 	struct	sockaddr_in	master, from;
+	int portname = 2222;
 	
 	unsigned int userCount = 0;
-
-
+	char buffer[256];
 	char * handshake[2];
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
+
+	if (argc == 2) {
+		portname = atoi(argv[1]);
+   	}
 
  	sock = socket (AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
@@ -36,7 +38,7 @@ int main() {
 
 	master.sin_family = AF_INET;
 	master.sin_addr.s_addr = INADDR_ANY;
-	master.sin_port = htons (MY_PORT);
+	master.sin_port = htons (portname);
 
 	if (bind (sock, (struct sockaddr*) &master, sizeof(master))) {
 		perror ("Server: cannot bind master socket");
@@ -49,15 +51,23 @@ int main() {
 
 	while (1) {
 		fromlength = sizeof (from);
-		snew = accept(sock, (struct sockaddr*) & from, & fromlength);
+		snew = accept(sock, (struct sockaddr*) &from, &fromlength);
+		
 		if (snew < 0) {
 			perror ("Server: accept failed");
 			exit (1);
 		}
-		printf("Process %d \n", number);
-		// handshake = htonl(handshake);
+
 		userCount++;
+		
 		send(snew, &handshake, sizeof(handshake)-1, 0);
+
+		bzero(buffer, 256);
+		recv(snew, buffer, sizeof(buffer), 0);
+		
+		printf("Recieved Message: \n");
+		printf("%s\n", buffer);
+
 		close (snew);
 		number++;
 	}
