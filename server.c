@@ -62,11 +62,13 @@ int main(int argc, char *argv[]) {
 		
 		send(snew, &handshake, sizeof(handshake)-1, 0);
 
-		bzero(buffer, 256);
-		recv(snew, buffer, sizeof(buffer), 0);
+		while(1) {
+			bzero(buffer, 256);
+			recv(snew, buffer, sizeof(buffer), 0);
 		
-		printf("Recieved Message: \n");
-		printf("%s\n", buffer);
+			printf("Recieved Message: \n");
+			printf("%s", buffer);
+		}
 
 		close (snew);
 		number++;

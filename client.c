@@ -54,24 +54,19 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Handshaking
-	int check = recv(s, &recieved, sizeof(recieved), 0);
-	// printf("%c\n", recieved[0]);
-	// printf("%d\n", check);
+	recv(s, &recieved, sizeof(recieved), 0);
 	if (recieved[0] == (char *) 0xCF && recieved[1] == (char *) 0xA7) {
-		fprintf (stderr, "Process %d \n", getpid());
-		printf("%c\n", recieved[0]);
+		fprintf (stderr, "Your Process ID: %d \n", getpid());
 	}
 
-	char * single = "a";
-	bzero(buffer, 256);
-	fgets(buffer, 255, stdin);
-	check = send(s, buffer, sizeof(buffer)-1, 0);
-	// printf("%d\n", check);
-
-
+	
 	// Connection Established, Messaging here.
 	while (1) {
-		break;	
+		printf("Enter your message: ");
+		bzero(buffer, 256);
+		fgets(buffer, 255, stdin);
+		fflush(stdout);
+		send(s, buffer, sizeof(buffer)-1, 0);
 	}
 	close (s);	
 }

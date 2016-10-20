@@ -1,6 +1,13 @@
 
 
 
-void message(int snew, char* buffer, int length) {
-	send(snew, &buffer, sizeof(handshake)-1, 0);
+void sendUserMessage(int sock, char* buffer) {
+	
+
+
+	bzero(buffer, sizeof(buffer));
+	fgets(buffer, sizeof(buffer)-1, stdin);
+	send(sock, buffer, sizeof(buffer)-1, 0);
 }
+
+void recvUserMessage()
