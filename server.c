@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 // #define	MY_PORT	2234
 
@@ -51,7 +52,9 @@ int main(int argc, char *argv[]) {
 
 	int pid; // used to fork process
 	static int counter = 0; // keep count of processes
-
+	int fd[2]; // file descriptor
+	int parentVal = 0;
+	pipe(fd);
 
 	while (1) {
 		fromlength = sizeof (from);
@@ -67,25 +70,32 @@ int main(int argc, char *argv[]) {
 		send(snew, &handshake, sizeof(handshake)-1, 0);
 
 	    pid = fork();
-		printf("I am a server with pid %d\n", getpid());
+		printf("Return value of fork %d\n", pid);
 	    if ( pid  == -1) { // failure ... please never evaluate to true .... please
 			close(snew);
 			continue;
 		} else if (pid > 0) {
 			close(snew); // we need this open? well not for my tests but later on...
 			++counter;
-			printf("I am the parent, and just spawned a child process ");
+			printf("I am a PARENT server with pid %d\n", getpid());
+			
+			parentVal = 100;
+			write(fd[1], &parentVal, sizeof(parentVal)); // not through socket but pipe
 		} else if (pid == 0) {
 			++counter;
+			printf("I am a CHILD server with pid %d\n", getpid());
+			
+			read(fd[0], &parentVal, sizeof(parentVal));
+			printf("Parent has sent a message %d\n", parentVal);
 		}
 
 
 
 		while(!pid) {
-			bzero(buffer, 256);
+			memset(buffer, 256, 0);
 			recv(snew, buffer, sizeof(buffer), 0);
 		
-			printf("Recieved Message: \n");
+			printf("Server with pid %d Recieved Message: \n", getpid());
 			printf("%s", buffer);
 		}
 

@@ -5,7 +5,7 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 
 // #define	 MY_PORT  2234
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 		exit (1);
 	}
 
-	bzero(&server, sizeof (server));
+	memset(&server, sizeof (server), 0);
 	bcopy(host->h_addr, &server.sin_addr, host->h_length);
 	server.sin_family = host->h_addrtype;
 	server.sin_port = htons (portname);
