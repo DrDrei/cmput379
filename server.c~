@@ -49,9 +49,8 @@ int main(int argc, char *argv[]) {
 
 	listen(sock, 5);
 
-	int pid; // used to fork process
+  int pid; // used to fork process
 	static int counter = 0; // keep count of processes
-
 
 	while (1) {
 		fromlength = sizeof (from);
@@ -66,15 +65,14 @@ int main(int argc, char *argv[]) {
 		
 		send(snew, &handshake, sizeof(handshake)-1, 0);
 
-	    pid = fork();
-		printf("I am a server with pid %d\n", getpid());
-	    if ( pid  == -1) { // failure ... please never evaluate to true .... please
-			close(snew);
+    pid = fork();
+    if ( pid  == -1) { // failure ... please never evaluate to true .... please
+			close(s);
 			continue;
 		} else if (pid > 0) {
-			close(snew); // we need this open? well not for my tests but later on...
+			close(s); // we need this open? well not for my tests but later on...
 			++counter;
-			printf("I am the parent, and just spawned a child process ");
+			printf("I am the parent\n");
 		} else if (pid == 0) {
 			++counter;
 		}

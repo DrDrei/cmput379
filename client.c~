@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
 	
 	// Connection Established, Messaging here.
-	while (1) { // only for child processes
+	while (!pid) { // only for child processes
 
 		printf("Enter your message: ");
 		bzero(buffer, 256);
