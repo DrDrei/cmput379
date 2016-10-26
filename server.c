@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include "functions.h"
 
 // #define	MY_PORT	2234
 
@@ -23,9 +24,7 @@ int main(int argc, char *argv[]) {
 	
 	unsigned int userCount = 0;
 	char buffer[256];
-	char * handshake[2];
-	handshake[0] = (char *) 0xCF;
-	handshake[1] = (char *) 0xA7;
+	char * handshake[2] = {0xCF, 0xA7};
 
 	if (argc == 2) {
 		portname = atoi(argv[1]);
@@ -45,6 +44,8 @@ int main(int argc, char *argv[]) {
 		perror ("Server: cannot bind master socket");
 		exit (1);
 	}
+
+	number = 0;
 
 	listen(sock, 5);
 
@@ -87,8 +88,6 @@ int main(int argc, char *argv[]) {
 			printf("Parent has sent a message %d\n", parentVal);
 		}
 
-		printf("User count is:%d\n", userCount);
-
 		while(!pid) {
 			memset(buffer, 256, 0);
 			recv(snew, buffer, sizeof(buffer), 0);
@@ -98,6 +97,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		close (snew);
+		number++;
 	}
 }
 
