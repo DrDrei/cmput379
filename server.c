@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
 		exit (1);
 	}
 
-	number = 0;
-
 	listen(sock, 5);
 
 	int pid; // used to fork process
@@ -89,7 +87,7 @@ int main(int argc, char *argv[]) {
 			printf("Parent has sent a message %d\n", parentVal);
 		}
 
-
+		printf("User count is:%d\n", userCount);
 
 		while(!pid) {
 			memset(buffer, 256, 0);
@@ -100,7 +98,6 @@ int main(int argc, char *argv[]) {
 		}
 
 		close (snew);
-		number++;
 	}
 }
 

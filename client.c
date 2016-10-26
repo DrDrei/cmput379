@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
 	char buffer[256];
 	char * recieved[2];
-	char* username = "usernameUndefined";
+	char * username = "usernameUndefined";
 	int portname = 2222;
 	
 	host = gethostbyname ("localhost");
@@ -60,10 +60,8 @@ int main(int argc, char *argv[]) {
 		
 	}
 
-	
 	// Connection Established, Messaging here.
 	while (1) { // only for child processes
-
 		printf("Enter your message: ");
 		bzero(buffer, 256);
 		fgets(buffer, 255, stdin);

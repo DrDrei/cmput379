@@ -1,7 +1,4 @@
-
-
-
-void sendUserMessage(int sock, char* buffer) {
+void sendUserMessage(int sock, char * buffer, char * username) {
 	
 
 
@@ -11,3 +8,7 @@ void sendUserMessage(int sock, char* buffer) {
 }
 
 void recvUserMessage()
+
+void userUpdate(int type, ) {
+	
+}
