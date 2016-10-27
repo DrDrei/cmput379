@@ -6,7 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
+#define STDIN 0  // file descriptor for standard input
 // #define	 MY_PORT  2234
 
 /* ---------------------------------------------------------------------
@@ -24,6 +27,13 @@ int main(int argc, char *argv[]) {
 	char * username = "usernameUndefined";
 	int portname = 2222;
 	
+    struct timeval tv;
+    fd_set readfds;
+
+    tv.tv_sec = 3;
+    tv.tv_usec = 500000;
+
+
 	host = gethostbyname ("localhost");
 	if (argc == 3) {
 		portname = atoi(argv[1]);
@@ -62,11 +72,19 @@ int main(int argc, char *argv[]) {
 
 	// Connection Established, Messaging here.
 	while (1) { // only for child processes
-		printf("Enter your message: ");
-		bzero(buffer, 256);
-		fgets(buffer, 255, stdin);
-		fflush(stdout);
-		send(s, buffer, sizeof(buffer)-1, 0);
+		FD_ZERO(&readfds);
+        FD_SET(STDIN, &readfds);
+        select(STDIN+1, &readfds, NULL, NULL, &tv);
+        
+        if (FD_ISSET(STDIN, &readfds)) {
+			printf("Enter your message: ");
+			bzero(buffer, 256);
+			fgets(buffer, 255, stdin);
+			fflush(stdout);
+			send(s, buffer, sizeof(buffer)-1, 0);
+        } else {
+            printf("Timed out.\n");
+        }
 	}
 	close (s);	
 
