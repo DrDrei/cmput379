@@ -27,11 +27,11 @@ int main(int argc, char *argv[]) {
 	char * username = "usernameUndefined";
 	int portname = 2222;
 	
-    struct timeval tv;
+    struct timeval tv = {5, 0};
     fd_set readfds;
+	int rv; // return val 
+	FD_ZERO(&readfds);
 
-    tv.tv_sec = 3;
-    tv.tv_usec = 500000;
 
 
 	host = gethostbyname ("localhost");
@@ -69,22 +69,37 @@ int main(int argc, char *argv[]) {
 		fprintf (stderr, "Your Process ID: %d \n", getpid());
 		
 	}
-
+	int checkSel;
 	// Connection Established, Messaging here.
 	while (1) { // only for child processes
-		FD_ZERO(&readfds);
-        FD_SET(STDIN, &readfds);
-        select(STDIN+1, &readfds, NULL, NULL, &tv);
-        
-        if (FD_ISSET(STDIN, &readfds)) {
-			printf("Enter your message: ");
+        struct timeval tv = {5, 0};
+		FD_SET(STDIN, &readfds);
+        checkSel = select(STDIN+1, &readfds, NULL, NULL, &tv);
+        printf("Select return : %d\n", checkSel);
+ /*
+		if( checkSel == -1 ) {
+			perror("select");
+		} else if (checkSel == 0) {
+			// timing out
+			printf("Timing out\n");
+		} else {
+			// reset and initialize? nah
+			// do the get input here?? nah
+		}
+*/
+		
+		if( checkSel == -1) {
+			perror("select");// error
+		} else if (FD_ISSET(STDIN, &readfds)) {
+			// we input out message here
+			// should we reset and initialize here as well?
 			bzero(buffer, 256);
 			fgets(buffer, 255, stdin);
-			fflush(stdout);
 			send(s, buffer, sizeof(buffer)-1, 0);
         } else {
-            printf("Timed out.\n");
+            printf("Timed out.\n"); // every five seconds
         }
+
 	}
 	close (s);	
 
