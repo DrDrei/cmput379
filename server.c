@@ -23,6 +23,8 @@ int main(int argc, char *argv[]) {
 	
 	unsigned int userCount = 0;
 	char buffer[256];
+	char username[256];
+	char updateMessage[256];
 	char * handshake[2];
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
@@ -65,36 +67,46 @@ int main(int argc, char *argv[]) {
 
 		userCount++;
 		
-		send(snew, &handshake, sizeof(handshake)-1, 0);
-
+		// send the handshake
+		memset(username, sizeof(username), 0);
+		send(snew, &handshake, sizeof(handshake)-1, 0); 
+		recv(snew, username, sizeof(username)-1, 0); // recieve the username
+		printf("%s\n", username);	
 	    pid = fork();
-		printf("Return value of fork %d\n", pid);
-	    if ( pid  == -1) { // failure ... please never evaluate to true .... please
+		buffer[0] = 0x01; // new user has joined
+
+	    if ( pid  == -1) { // failure
 			close(snew);
 			continue;
 		} else if (pid > 0) {
-			close(snew); // we need this open? well not for my tests but later on...
-			++counter;
-			printf("I am a PARENT server with pid %d\n", getpid());
-			
-			parentVal = 100;
-			write(fd[1], &parentVal, sizeof(parentVal)); // not through socket but pipe
+			// this is the parent (main) server
+			close(snew); // we dont need the main server to be connected
+			++counter; // why do i have this? can i remove it?
+			// this is for user joining
+
+			memcpy(&updateMessage[1], username, sizeof(updateMessage));
+			write(fd[1], &updateMessage, sizeof(updateMessage));
 		} else if (pid == 0) {
 			++counter;
 			printf("I am a CHILD server with pid %d\n", getpid());
 			
-			read(fd[0], &parentVal, sizeof(parentVal));
-			printf("Parent has sent a message %d\n", parentVal);
+			read(fd[0], &updateMessage, sizeof(updateMessage));
+			printf("Parent has sent a message %s\n", updateMessage+1);
 		}
 
 		printf("User count is:%d\n", userCount);
 
 		while(!pid) {
-			memset(buffer, 256, 0);
+			memset(buffer, 0, 255);
 			recv(snew, buffer, sizeof(buffer), 0);
-		
+	
+			// testing	
 			printf("Server with pid %d Recieved Message: \n", getpid());
-			printf("%s", buffer);
+			// there is a god dammed return carriage here. im thinking we 
+			// user buffer[0] to find it and set that byte to something else
+			memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
+			printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
+			
 		}
 
 		close (snew);
