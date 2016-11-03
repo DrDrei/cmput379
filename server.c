@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 	listen(sock, 5);
 
 	int pid; // used to fork process
-	int fd[2]; // file descriptor
+	int fd[2], fd2[2]; // file descriptors
 	int parentVal = 0;
 	pipe(fd);
 	int checkSel2;
@@ -69,11 +69,13 @@ int main(int argc, char *argv[]) {
 			if( checkSel2 < 0) {
 				perror("select");// error
 			} else if (FD_ISSET(sock, &readfds2)) {
+
 				snew = accept(sock, (struct sockaddr*) &from, &fromlength);
+
 				break;
 	        } else {
 	        	// check if there is an update message
-	        	read(fd[0], &updateMessage, sizeof(updateMessage));
+	        	//read(fd[0], &updateMessage, sizeof(updateMessage));
 	        	printf("Time out %s\n", updateMessage+2);
 	            
 	         }
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
 		// send the handshake
 		memset(username, sizeof(username), 0);
 		send(snew, &handshake, sizeof(handshake)-1, 0); 
-		recv(snew, username, sizeof(username)-1, 0); // recieve the username
+		recv(snew, username, sizeof(username)-1, 0); // frecieve the username
 		
 		userList[userCount] = (username+1);
 
@@ -153,14 +155,18 @@ int main(int argc, char *argv[]) {
 				// user buffer[0] to find it and set that byte to something else
 				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
 				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
-			
+				
+				write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
+
 			} else {
 				printf("I have exited\n");
 				fflush(0);
-				memset(updateMessage, 2, 1);
-				write(fd[1], &updateMessage, sizeof(updateMessage)); // write that client has left
 
-				printf("Update Message closing: %d, %s\n", updateMessage[0], updateMessage+2);
+				memset(updateMessage + (int)buffer[0], 0, 1);
+				//memset(updateMessage, 2, 1);
+				write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
+
+				//printf("Update Message closing: %d, %s\n", updateMessage[0], updateMessage+2);
 				close(snew);
 				exit(0);
 			}
