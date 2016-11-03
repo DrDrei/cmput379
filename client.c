@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 		FD_SET(STDIN, &readfds);
         checkSel = select(STDIN+1, &readfds, NULL, NULL, &tv);
 		
-		if( checkSel == -1) {
+		if( checkSel < 0) {
 			perror("select");// error
 		} else if (FD_ISSET(STDIN, &readfds)) {
 			// we input our message here
@@ -96,15 +96,6 @@ int main(int argc, char *argv[]) {
 
 }
 
-// formats messages and username from client to server
-// void formatMessage(char * message, char * buffer) {
-
-// 	int messageLength = strlen(message);
-// 	memset(buffer, 0, sizeof(buffer));
-// 	buffer[0] = messageLength;
-// 	memcpy(&buffer[1], message, messageLength+1);	
-	
-// }
 
 void intHandler(int sig) {
 

@@ -15,3 +15,5 @@
 
 // formats messages and username from client to server
 void formatMessage(char * message, char * buffer);
+
+//void pipeToParent(char *m)
