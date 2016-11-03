@@ -11,7 +11,7 @@ client379: client.o sharedFunc.o
 	$(CC) $(CFLAGS) client.o sharedFunc.o -o client379
 
 server379: server.o sharedFunc.o
-	$(CC) $(CFLAGS) server.o -o server379
+	$(CC) $(CFLAGS) server.o sharedFunc.o -o server379
 
 client.o: client.c sharedFunc.o sharedFunc.h
 	$(CC) -c $(CFLAGS) client.c

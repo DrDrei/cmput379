@@ -62,10 +62,10 @@ int main(int argc, char *argv[]) {
 	recv(s, &recieved, sizeof(recieved), 0);
 	if (recieved[0] == (char *) 0xCF && recieved[1] == (char *) 0xA7) {
 		fprintf (stderr, "Your Process ID: %d \n", getpid());
-		formatMessage(username, buffer); 
+		messageLength = formatMessage(username, buffer); 
 		printf("Username length is: %d -- buffer: %s\n", messageLength, buffer+1);	
 		// sends the length followed by the username
-		send(s, buffer, sizeof(buffer)-1, 0);
+		send(s, buffer, messageLength+1, 0);
 
 	}
 	int checkSel;
@@ -83,9 +83,9 @@ int main(int argc, char *argv[]) {
 			memset(message, 0, sizeof(message));
 			fgets(message, 255, stdin);
 
-			formatMessage(message, buffer);
+			messageLength = formatMessage(message, buffer);
 			//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
-			send(s, buffer, sizeof(buffer)-1, 0);
+			send(s, buffer, messageLength+1, 0);
 	
         } else {
             printf("Timed out.\n"); // every five seconds
@@ -103,14 +103,8 @@ void intHandler(int sig) {
 
 	signal(sig, SIG_IGN);
 	printf("You pressed ctrl-c?\n");
-	c = getchar();
-     if (c == 'y' || c == 'Y') {
-    	close(s);
-        exit(0);
-     } else {
-          signal(SIGINT, intHandler);
-     }
-     getchar();
+   	close(s);
+    exit(0);
 
 
 }

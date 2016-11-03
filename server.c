@@ -9,6 +9,8 @@ int main(int argc, char *argv[]) {
 	struct	sockaddr_in	master, from;
 	int portname = 2222;
 	
+	int messageLength = 0;
+
 	unsigned int userCount = 0;
 	unsigned int userCount2 = 0;
 	char buffer[256];
@@ -20,6 +22,8 @@ int main(int argc, char *argv[]) {
 
 	char * userList[256];
 
+	int * userCountPtr = &userCount;
+	char ** usernameArray = malloc(userCount);
 	// timming to cut connection
 
 	/*
@@ -76,7 +80,7 @@ int main(int argc, char *argv[]) {
 	        } else {
 	        	// check if there is an update message
 	        	//read(fd[0], &updateMessage, sizeof(updateMessage));
-	        	printf("Time out %s\n", updateMessage+2);
+	        	//printf("Time out %s\n", updateMessage+2);
 	            
 	         }
 
@@ -87,19 +91,33 @@ int main(int argc, char *argv[]) {
 			exit (1);
 		}
 
-		// send the handshake
-		memset(username, sizeof(username), 0);
-		send(snew, &handshake, sizeof(handshake)-1, 0); 
-		recv(snew, username, sizeof(username)-1, 0); // frecieve the username
 		
-		userList[userCount] = (username+1);
+		memset(username, sizeof(username), 0);
+		// send the handshake
+		send(snew, &handshake, sizeof(handshake)-1, 0); 
+		// recive the first byte
+		recv(snew, messageLength, 1, 0); // frecieve the username
+		recv(snew, buffer, messageLength, 0); // frecieve the username
+		
+		//userList[userCount] = (username+1);
+// 		arrayAdd(usernameArray, userCountPtr, username+1);
+// 		printf("CHECK %s\n", username+1);
+// 		arrayAdd(usernameArray, userCountPtr, "tree");
 
-		for(size_t i = 0; i < userCount; ++i) {
-			printf("%s\n", userList[i]);	
+// 		arrayAdd(usernameArray, userCountPtr, "tree");
+// 		arrayAdd(usernameArray, userCountPtr, "tree");
 
-		}
-		userCount++; // to get index of array
-		userCount2++; // actual count of users
+// arrayAdd(usernameArray, userCountPtr, "tree");
+// 		arrayAdd(usernameArray, userCountPtr, "tree");
+// arrayAdd(usernameArray, userCountPtr, "tree");
+// 		arrayAdd(usernameArray, userCountPtr, "tree");
+// arrayAdd(usernameArray, userCountPtr, "tree");
+// 		arrayAdd(usernameArray, userCountPtr, "tree");
+
+
+// 		for(size_t i = 0; i < userCount; ++i) {
+// 			printf("%s\n", usernameArray[i]);	
+// 		}
 
 	    pid = fork();
 		buffer[0] = 0x01; // new user has joined
@@ -156,7 +174,7 @@ int main(int argc, char *argv[]) {
 				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
 				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
 				
-				write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
+				//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
 
 			} else {
 				printf("I have exited\n");
