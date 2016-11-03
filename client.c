@@ -14,6 +14,10 @@
  the server need not run on the same machine.				 
  --------------------------------------------------------------------- */
 
+// void signalHandler(int sig) {
+
+// }
+
 int main(int argc, char *argv[]) {
 	int	s, number;
 	struct	sockaddr_in	server;
@@ -60,6 +64,7 @@ int main(int argc, char *argv[]) {
 		
 	}
 
+	// signal(SIGINT, signalHandler);
 	// Connection Established, Messaging here.
 	while (1) { // only for child processes
 		printf("Enter your message: ");
@@ -67,6 +72,7 @@ int main(int argc, char *argv[]) {
 		fgets(buffer, 255, stdin);
 		fflush(stdout);
 		send(s, buffer, sizeof(buffer)-1, 0);
+		
 	}
 	close (s);	
 
