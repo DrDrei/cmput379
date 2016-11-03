@@ -1,26 +1,18 @@
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
 
-#define STDIN 0  // file descriptor for standard input
+// might want to move this to the header file
+ // file descriptor for standard input
 // #define	 MY_PORT  2234
 
-/* ---------------------------------------------------------------------
- This is a sample client program for the number server. The client and
- the server need not run on the same machine.				 
- --------------------------------------------------------------------- */
+#include "sharedFunc.h"
 
-void formatMessage(char * message, char * buffer); 
+void intHandler(int sig);
+
+
+int s;
 
 int main(int argc, char *argv[]) {
-	int	s, number;
+	int number;
+	//int	s, number;
 	struct	sockaddr_in	server;
 	struct	hostent		*host;
 
@@ -34,6 +26,9 @@ int main(int argc, char *argv[]) {
     struct timeval tv = {5, 0};
     fd_set readfds;
 	FD_ZERO(&readfds);
+
+	//signal
+	signal(SIGINT, intHandler);
 
 	host = gethostbyname ("localhost");
 	if (argc == 3) {
@@ -102,16 +97,30 @@ int main(int argc, char *argv[]) {
 }
 
 // formats messages and username from client to server
-void formatMessage(char * message, char * buffer) {
+// void formatMessage(char * message, char * buffer) {
+
+// 	int messageLength = strlen(message);
+// 	memset(buffer, 0, sizeof(buffer));
+// 	buffer[0] = messageLength;
+// 	memcpy(&buffer[1], message, messageLength+1);	
 	
-	int messageLength = strlen(message);
-	memset(buffer, 0, sizeof(buffer));
-	buffer[0] = messageLength;
-	memcpy(&buffer[1], message, messageLength+1);	
-	
+// }
+
+void intHandler(int sig) {
+
+	char c;
+
+	signal(sig, SIG_IGN);
+	printf("You pressed ctrl-c?\n");
+	c = getchar();
+     if (c == 'y' || c == 'Y') {
+    	close(s);
+        exit(0);
+     } else {
+          signal(SIGINT, intHandler);
+     }
+     getchar();
+
+
 }
-
-
-
-
 

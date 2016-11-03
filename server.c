@@ -1,20 +1,8 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+
 
 // #define	MY_PORT	2234
 
-/* ---------------------------------------------------------------------
- This	is  a sample server which opens a stream socket and then awaits
- requests coming from client processes. In response for a request, the
- server sends an integer number  such	 that  different  processes  get
- distinct numbers. The server and the clients may run on different ma-
- chines.
- --------------------------------------------------------------------- */
+#include "sharedFunc.h"
 
 int main(int argc, char *argv[]) {
 	int	sock, snew, fromlength, number, outnum;
@@ -28,6 +16,17 @@ int main(int argc, char *argv[]) {
 	char * handshake[2];
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
+
+	// timming to cut connection
+
+	/*
+	*	Do we want to use a signal handler to stop the child 
+	*	process when connection is closed?
+	*
+	*/
+    struct timeval tv = {30, 0};
+    fd_set readfds;
+	FD_ZERO(&readfds);
 
 	if (argc == 2) {
 		portname = atoi(argv[1]);
@@ -96,16 +95,43 @@ int main(int argc, char *argv[]) {
 
 		printf("User count is:%d\n", userCount);
 
+		/*
+		* in the while loop for the child process
+		*
+		*/
+		int connected = 1;
+		int recvCheck, checkSel;
+
 		while(!pid) {
-			memset(buffer, 0, 255);
-			recv(snew, buffer, sizeof(buffer), 0);
-	
-			// testing	
-			printf("Server with pid %d Recieved Message: \n", getpid());
-			// there is a god dammed return carriage here. im thinking we 
-			// user buffer[0] to find it and set that byte to something else
-			memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
-			printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
+			
+			struct timeval tv = {20, 0}; // reset timer
+			FD_SET(STDIN, &readfds);
+			checkSel = select(STDIN+1, &readfds, NULL, NULL, &tv);
+			if( checkSel == 1) {
+				perror("select");
+
+			} else if (FD_ISSET(STDIN, &readfds)) {
+				
+				memset(buffer, 0, 255);
+				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
+				printf("recvCheck is %d\n", recvCheck);
+				
+				if(recvCheck > 0) {
+					connected = 1;
+				}
+				// testing	
+				printf("Server with pid %d Recieved Message: \n", getpid());
+				// there is a god dammed return carriage here. im thinking we 
+				// user buffer[0] to find it and set that byte to something else
+				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
+				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
+			} else {
+				printf("I have exited\n");
+				fflush(0);
+				close(snew);
+				exit(0);
+			}
+
 			
 		}
 
