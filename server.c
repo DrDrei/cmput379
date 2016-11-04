@@ -7,15 +7,18 @@
 #include "include.h"
 
 int main(int argc, char *argv[]) {
+	Node *userListHead;
 
-	int	sock, snew, fromlength, number, outnum;
+	int	sock, snew, fromlength;
 	struct	sockaddr_in	master, from;
 	int portname = 2222;
 	
 	int messageLength = 0;
 
+	// =====why are we using two userCounts????
 	unsigned int userCount = 0;
 	unsigned int userCount2 = 0;
+
 	char buffer[256];
 	char username[256];
 	char updateMessage[256];
@@ -23,18 +26,22 @@ int main(int argc, char *argv[]) {
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
 
-	Node *userListHead;
+
 
     struct timeval tv = {30, 0}; //
     struct timeval tv2 = {5, 0};
     struct timeval tv3 = {1, 0};
     struct timeval tv4 = {1, 0};
+<<<<<<< HEAD
     fd_set readfds, readfds2, readfds3, readfds4;
+=======
+
+    fd_set readfds, readfds2, readfds3;
+>>>>>>> 9b9c56a2cab92b5c7671fd3e6b56493b929680eb
 	FD_ZERO(&readfds);
 	FD_ZERO(&readfds2);
 	FD_ZERO(&readfds3);
 	FD_ZERO(&readfds4);
-
 
 	if (argc == 2) { // check for command line arg of portnumber
 		portname = atoi(argv[1]);
@@ -48,7 +55,6 @@ int main(int argc, char *argv[]) {
 	master.sin_family = AF_INET;
 	master.sin_addr.s_addr = INADDR_ANY;
 	master.sin_port = htons(portname);
-
 	if (bind (sock, (struct sockaddr*) &master, sizeof(master))) {
 		perror ("Server: cannot bind master socket");
 		exit (1);
@@ -124,7 +130,6 @@ int main(int argc, char *argv[]) {
 	        	 	}
 	            }
 	         }
-
 		}
 		
 		// connection error
@@ -147,7 +152,6 @@ int main(int argc, char *argv[]) {
 		} else {
 			listAppend(userListHead, username+1);
 			//listPrint(userListHead);
-
 		}
 		
 		// open pipe for child server
@@ -178,7 +182,6 @@ int main(int argc, char *argv[]) {
 
 		while(!pid) { // child server
 	
-
 			struct timeval tv = {7, 0}; // reset timer
 			struct timeval tv4 = {1,0};
 			FD_SET(snew, &readfds);
