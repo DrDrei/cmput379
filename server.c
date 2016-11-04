@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
 
 	unsigned int userCount = 0;
 	unsigned int userCount2 = 0;
+	
 	char buffer[256];
 	char username[256];
 	char updateMessage[256];
@@ -35,7 +36,6 @@ int main(int argc, char *argv[]) {
 	FD_ZERO(&readfds3);
 
 
-
 	if (argc == 2) { // check for command line arg of portnumber
 		portname = atoi(argv[1]);
    	}
@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
 	master.sin_family = AF_INET;
 	master.sin_addr.s_addr = INADDR_ANY;
 	master.sin_port = htons(portname);
-
 	if (bind (sock, (struct sockaddr*) &master, sizeof(master))) {
 		perror ("Server: cannot bind master socket");
 		exit (1);
@@ -120,7 +119,6 @@ int main(int argc, char *argv[]) {
 	        	 	}
 	            }
 	         }
-
 		}
 		
 		// connection error
@@ -143,7 +141,6 @@ int main(int argc, char *argv[]) {
 		} else {
 			listAppend(userListHead, username+1);
 			//listPrint(userListHead);
-
 		}
 		
 		// open pipe for child server
