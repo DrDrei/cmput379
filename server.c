@@ -3,6 +3,8 @@
 // #define	MY_PORT	2234
 
 #include "sharedFunc.h"
+#include "linkedList.h"
+#include "include.h"
 
 int main(int argc, char *argv[]) {
 	int	sock, snew, fromlength, number, outnum;
@@ -22,8 +24,11 @@ int main(int argc, char *argv[]) {
 
 	char * userList[256];
 
-	int * userCountPtr = &userCount;
-	char ** usernameArray = malloc(userCount);
+	//int * userCountPtr = &userCount;
+	//char ** usernameArray = malloc(userCount);
+
+	Node *userListHead;
+
 	// timming to cut connection
 
 	/*
@@ -78,6 +83,10 @@ int main(int argc, char *argv[]) {
 
 				break;
 	        } else {
+
+	        	// check for removals here
+
+
 	        	// check if there is an update message
 	        	//read(fd[0], &updateMessage, sizeof(updateMessage));
 	        	//printf("Time out %s\n", updateMessage+2);
@@ -93,21 +102,33 @@ int main(int argc, char *argv[]) {
 
 		
 		memset(username, sizeof(username), 0);
-		// send the handshake
-		send(snew, &handshake, sizeof(handshake)-1, 0); 
-		// recive the first byte
-		recv(snew, messageLength, 1, 0); // frecieve the username
-		recv(snew, buffer, messageLength, 0); // frecieve the username
 		
+		send(snew, &handshake, sizeof(handshake)-1, 0); // send the handshake
+		
+										 // we have to change this, it should take a buffer
+		recv(snew, username, 1, 0); // recieve the first two bytes 
+		messageLength = (int)username[0];
+		//printf("Length of recieved thing is %d \n", messageLength);
+		fflush(0);
+		recv(snew, username+1, messageLength, 0); // recieve the username
+		printf("My recieved usename is: %s\n", username+1);
 
+		/*add user to dynamic array here*/		
 
-		userList[userCount] = (username+1);
-		size_t i;
-		for(i = 0; i < userCount; ++i) {
-			printf("%s\n", userList[i]);	
+		// // yea list doesn't really work
+		// userList[userCount] = (username+1);
+		// size_t i;
+		// for(i = 0; i < userCount; ++i) {
+		// 	printf("%s\n", userList[i]);	
+		// }
+		
+		if(userCount == 0) {
+			userListHead = createNode(username+1);
+		} else {
+			listAppend(userListHead, username+1);
 		}
-
-
+		
+		++userCount;
 // 		for(size_t i = 0; i < userCount; ++i) {
 // 			printf("%s\n", usernameArray[i]);	
 // 		}
@@ -118,21 +139,23 @@ int main(int argc, char *argv[]) {
 	    if ( pid  == -1) { // failure
 			close(snew);
 			continue;
-		} else if (pid > 0) {
+		} else if (pid > 0) { // this is the parent (main) server
 
-			// this is the parent (main) server
 			close(snew); // we dont need the main server to be connected
 			
 			// this is for user joining
-			memcpy(&updateMessage[1], username, sizeof(updateMessage));
+			memcpy(&updateMessage, username, sizeof(updateMessage));
 			write(fd[1], &updateMessage, sizeof(updateMessage));
-		} else if (pid == 0) {
+
+		} else if (pid == 0) { // child server
+
 			printf("I am a CHILD server with pid %d\n", getpid());
 			printf("hi\n");
 
+			// testing pipe usage
 			read(fd[0], &updateMessage, sizeof(updateMessage));	
 
-			printf("Parent has sent a message %s\n", updateMessage+2);
+			printf("Parent has sent a message %s\n", updateMessage+1);
 
 		}
 
@@ -177,7 +200,8 @@ int main(int argc, char *argv[]) {
 
 				memset(updateMessage + (int)buffer[0], 0, 1);
 				//memset(updateMessage, 2, 1);
-				write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
+				// what is the size??????????//
+				write(fd[1], &updateMessage, messageLength+1); // write client message to pipe
 
 				//printf("Update Message closing: %d, %s\n", updateMessage[0], updateMessage+2);
 				close(snew);

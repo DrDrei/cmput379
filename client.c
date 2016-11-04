@@ -4,6 +4,8 @@
 // #define	 MY_PORT  2234
 
 #include "sharedFunc.h"
+#include "include.h"
+
 
 void intHandler(int sig);
 
