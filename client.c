@@ -102,7 +102,6 @@ int main(int argc, char *argv[]) {
 // 			} else {
 // 				//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
 // 			}
-// >>>>>>> 9b9c56a2cab92b5c7671fd3e6b56493b929680eb
 	
         } else {
             printf("Timed out.\n"); // every five seconds
@@ -119,4 +118,7 @@ void intHandler(int sig) {
    	close(s);
     exit(0);
 }
+
+
+
 

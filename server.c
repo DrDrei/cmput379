@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
 	if (argc == 2) { // check for command line arg of portnumber
 		portname = atoi(argv[1]);
    	}
+   	
  	sock = socket (AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror ("Server: cannot open master socket");
@@ -229,77 +230,12 @@ int main(int argc, char *argv[]) {
 				memcpy(updateMessage+1, username, sizeof(updateMessage));
 				printf("Size of updatemessage %d\n", sizeof(updateMessage));
 				write(fdList[userCount2-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
-				
+				printf("Finished writing...\n");
 				close(snew);
 				exit(0);
 			}
 		} // end of child server while loop
 	}
 }
-
-	// struct timeval tv4 = {2, 0}; // reset timer
-	// 		//FD_SET(snew, &readfds);
-	// 		checkSel4 = select(fdList[userCount-1][0], &readfds3, NULL, NULL, &tv4);
-	// 		if( checkSel4 < 0) {
-	// 			perror("select4");
-
-	// 		} else if (checkSel4 == 0) { // there are things in the pipe
-	// 			printf("There are things in the pipe\n");
-	// 			//printf("Index before: %d -- ", j);
-
-	        	 		
-				
-	// 		} else { // nothing in the pipe
-	// 			printf("Nothing in the pipe\n");
-	// 			read(fdList[userCount-1][0], &updateMessage, sizeof(updateMessage));	
-			
-	// 			printf("Message is a username? %s\n", updateMessage+2);
-
-	// 		}
-
-
-
-
-// struct timeval tv = {7, 0}; // reset timer
-// 			FD_SET(snew, &readfds);
-// 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
-// 			if( checkSel < 0) {
-// 				perror("select");
-
-// 			} else if (FD_ISSET(snew, &readfds)) {
-				
-// 				memset(buffer, 0, 255);
-// 				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
-
-// 				// keep this??? if we ctrl-c it will keep printing 0 otherwise
-// 				if(buffer[0] == 0) { continue; }
-
-// 				//printf("recvCheck is %d\n", recvCheck);
-// 				// testing	
-// 				printf("Server with pid %d Recieved Message: \n", getpid());
-// 				// there is a god dammed return carriage here. im thinking we 
-// 				// user buffer[0] to find it and set that byte to something else
-// 				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
-// 				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
-				
-// 				//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
-
-// 			} else {
-// 				printf("I have exited\n");
-// 				fflush(0);
-
-				
-// 				//memset(updateMessage + (int)buffer[0], 0, 1);
-// 				updateMessage[0] = 0x01; // set first byte to indicate closing connection
-// 				printf("username is.... %s\n", username+1);
-
-// 				// copy over the username
-// 				memcpy(updateMessage+1, username, sizeof(updateMessage));
-				
-// 				write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
-
-// 				close(snew);
-// 				exit(0);
-// 			}
 
 			
