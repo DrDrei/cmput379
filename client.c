@@ -13,7 +13,7 @@ void intHandler(int sig);
 int s;
 
 int main(int argc, char *argv[]) {
-	int number;
+
 	struct	sockaddr_in	server;
 	struct	hostent		*host;
 
@@ -86,7 +86,6 @@ int main(int argc, char *argv[]) {
 			fgets(message, 255, stdin);
 
 			messageLength = formatMessage(message, buffer);
-			//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
 			send(s, buffer, messageLength+1, 0);
 	
         } else {

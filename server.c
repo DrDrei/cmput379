@@ -56,11 +56,8 @@ int main(int argc, char *argv[]) {
 
 	listen(sock, 5);
 
-	int pid; // used to fork process
-	int fd[2];// file descriptors
-	
 	//pipe(fd);
-	int checkSel2, checkSel3, checkSel4;
+	int checkSel2, checkSel3;
 
 	int fdList[10][2];
 
@@ -154,7 +151,7 @@ int main(int argc, char *argv[]) {
 		}
 		
 		// open pipe for child server
-		pipe(fdList[userCount]);
+		pipe(fdList[userCount2]);
 
 
 		++userCount;
@@ -163,6 +160,8 @@ int main(int argc, char *argv[]) {
 		buffer[0] = 0x01; // new user has joined
 
 		// fork the main server
+
+		int pid; // used to fork process
 	    pid = fork();
 		
 	    if ( pid  == -1) { // failure
@@ -175,18 +174,19 @@ int main(int argc, char *argv[]) {
 		}
 
 
-		int recvCheck, checkSel;
+		int recvCheck, checkSel, checkSel4;
 
 		while(!pid) { // child server
 	
 
 			struct timeval tv = {7, 0}; // reset timer
+			struct timeval tv4 = {1,0};
 			FD_SET(snew, &readfds);
 			FD_SET(fdList[userCount2-1][0], &readfds);
 
 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
 
-			//checkSel = select(fdList[userCount2-1][0], &readfds4, NULL, NULL, &tv);
+			checkSel4 = select(fdList[userCount2-1][0]+1, &readfds4, NULL, NULL, &tv4);
 
 			if( checkSel < 0) {
 				perror("select");
@@ -208,12 +208,12 @@ int main(int argc, char *argv[]) {
 				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
 						
 						//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
-
-			} else if (FD_ISSET(fdList[userCount2-1][0], &readfds)) { 
-				// check for activity in file descriptor
-				printf("We are hanging where the child server tries to read\n");
-				read(fdList[userCount2-1][0], &updateMessage, sizeof(updateMessage));
-				printf("THERE IS AN UPDATE MES %s\n", updateMessage+2);
+// 			} else if (checkSel4 == 0) { 
+// //			} else if (FD_ISSET(fdList[userCount2-1][0], &readfds)) { 
+// 				// check for activity in file descriptor
+// 				printf("We are hanging where the child server tries to read\n");
+// 				//read(fdList[userCount2-1][0], &updateMessage, sizeof(updateMessage));
+// 				printf("THERE IS AN UPDATE MES %s\n", updateMessage+2);
 
 			} else {
 				printf("I have exited\n");
