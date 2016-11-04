@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 	        	 		// NO SHIT WE SEGFAULT HERE, THE CHILD SERVERS DONT READ FROM IT
 	        	 		printf("Did we write correctly\n");
 	        	 		for(k = 0; k < userCount2; ++k) {
-	        	 			
+	        	 			printf("I want to write %s\n", updateMessage+2);
 	        	 		 	write(fdList[k][1], &updateMessage, sizeof(updateMessage));
 
 	        	 		}
