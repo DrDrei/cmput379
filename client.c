@@ -13,7 +13,6 @@ void intHandler(int sig);
 int s;
 
 int main(int argc, char *argv[]) {
-	int number;
 	struct	sockaddr_in	server;
 	struct	hostent		*host;
 
@@ -84,10 +83,22 @@ int main(int argc, char *argv[]) {
 			// should we reset and initialize here as well?
 			memset(message, 0, sizeof(message));
 			fgets(message, 255, stdin);
-
 			messageLength = formatMessage(message, buffer);
-			//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
-			send(s, buffer, messageLength+1, 0);
+			message[strcspn(message, "\n")] = '\0';
+
+			if (!strncmp(message, "/", 1)) {
+				if (!strcmp(message, "/help")) {
+					printf("Available functions:\n");
+					printf("/list - get a list of current users connected\n");
+				} else if (!strcmp(message, "/list")) {
+					// provide a list of users
+				} else {
+					printf("Please type in /help to see a list of functions\n");
+				}
+			} else {
+				//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
+				send(s, buffer, message+1, 0);
+			}
 	
         } else {
             printf("Timed out.\n"); // every five seconds

@@ -7,16 +7,18 @@
 #include "include.h"
 
 int main(int argc, char *argv[]) {
+	Node *userListHead;
 
-	int	sock, snew, fromlength, number, outnum;
+	int	sock, snew, fromlength;
 	struct	sockaddr_in	master, from;
 	int portname = 2222;
 	
 	int messageLength = 0;
 
+	// =====why are we using two userCounts????
 	unsigned int userCount = 0;
 	unsigned int userCount2 = 0;
-	
+
 	char buffer[256];
 	char username[256];
 	char updateMessage[256];
@@ -24,12 +26,13 @@ int main(int argc, char *argv[]) {
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
 
-	Node *userListHead;
+
 
     struct timeval tv = {30, 0}; //
     struct timeval tv2 = {5, 0};
     struct timeval tv3 = {1, 0};
     struct timeval tv4 = {1, 0};
+
     fd_set readfds, readfds2, readfds3;
 	FD_ZERO(&readfds);
 	FD_ZERO(&readfds2);
@@ -168,8 +171,6 @@ int main(int argc, char *argv[]) {
 		int recvCheck, checkSel;
 
 		while(!pid) { // non parent server
-	
-
 			struct timeval tv = {7, 0}; // reset timer
 			FD_SET(snew, &readfds);
 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
