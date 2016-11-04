@@ -19,10 +19,10 @@ client.o: client.c sharedFunc.o sharedFunc.h
 server.o: server.c sharedFunc.o sharedFunc.h
 	$(CC) -c $(CFLAGS) server.c
 
-sharedFunc.o: sharedFunc.c #include.h
+sharedFunc.o: sharedFunc.c include.h
 	$(CC) -c $(CFLAGS) sharedFunc.c
 
-linkedList.o: linkedList.c
+linkedList.o: linkedList.c include.h
 	$(CC) -c $(CFLAGS) linkedList.c	
 
 clean:

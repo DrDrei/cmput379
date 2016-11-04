@@ -8,39 +8,34 @@ typedef struct Node {
 
 } Node;
 
+
+// create a node and initialize its data to str, return a pointer to that node
 Node * createNode(char * str) {
 
 	Node *node = malloc(sizeof(Node));
-	//printf("The length of the input string is %d\n",strlen(str));
 	node->data = malloc(strlen(str)+1);
 	memcpy(node->data, str, strlen(str)+1);
 	node->next = 0;
 	node->previous = 0;
 	return node;
 
-
-	// Node *node = malloc(sizeof(Node));
-	// //printf("%",)
-	// node->data = str;
-	// node->next = 0;
-	// node->previous = 0;
-	// return node;
-
 } 
-// parameters are the head of list and the string
+
+// deletes and frees memory from a node given a pointer to that node
+void deleteNode(Node *node) {
+	free(node->data);
+	free(node);
+}
+
+// append a node with data = str to the tail of the list 
 void listAppend(Node *node, char * str) {
 
 	Node *currentNode = node;
 	Node *previousNode;
-
-	//printf("We are appending, there are already things in node:\n");
-	//printf("%s\n", currentNode->data);
 		
 	// find our last node
 	while(currentNode->next != 0) {
-		currentNode = currentNode->next;
-	//	printf("%s\n", currentNode->data);
-	
+		currentNode = currentNode->next;	
 	}
 
 	currentNode->next = createNode(str);
@@ -48,13 +43,9 @@ void listAppend(Node *node, char * str) {
 
 }
 
-void deleteNode(Node *node) {
-	free(node->data);
-	free(node);
-}
-
+// find the node given a string and return a pointer to the node
+// returns 0 if it cannot be found
 Node * listFind(Node *node, char *str) {
-
 	
 	Node *currentNode = node;
 	while(strcmp(str, currentNode->data)) { // has not found it
@@ -64,12 +55,12 @@ Node * listFind(Node *node, char *str) {
 		currentNode = currentNode->next;
 	}
 
-
 	// found it
 	return currentNode;
 
 }
 
+// remove a node given a str and returns the new head (if it has changed)
 Node * listRemove(Node *node, char * str) {
 
 	Node * toRemove = listFind(node, str);
@@ -79,7 +70,7 @@ Node * listRemove(Node *node, char * str) {
 				free(toRemove);
 				return 0;
 			}
-			//printf("True\n");
+			
 			node = node->next; // set new head node
 			(toRemove->next)-> previous = 0;
 
@@ -88,16 +79,17 @@ Node * listRemove(Node *node, char * str) {
 
 		} else {
 		
-			toRemove->previous = toRemove->next; // also acounts for tail nodes
+			toRemove->previous = toRemove->next; // also accounts for tail nodes
 			free(toRemove);
 		
 		}
 	}
 
 	return node; // returns the head
+
 }
 
-
+// prints out all the nodes
 void  listPrint(Node *node) {
 
 	if(node != 0) {
@@ -123,7 +115,7 @@ void  listPrint(Node *node) {
 
 }
 
-
+// frees the allocated memory from the linked list
 void listFree(Node * node) {
 
 	if(node->next == 0) {

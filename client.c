@@ -9,12 +9,11 @@
 
 void intHandler(int sig);
 
-
+// global for the socket, used to closed connection on ctrl-c
 int s;
 
 int main(int argc, char *argv[]) {
 	int number;
-	//int	s, number;
 	struct	sockaddr_in	server;
 	struct	hostent		*host;
 

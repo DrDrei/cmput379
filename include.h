@@ -1,3 +1,6 @@
+#ifndef	INCLUDE_H
+#define INCLUDE_H
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -10,3 +13,5 @@
 #include <sys/types.h>
 
 #include <signal.h>
+
+#endif

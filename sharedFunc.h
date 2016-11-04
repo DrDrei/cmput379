@@ -14,6 +14,8 @@
 
 // #include <signal.h>
 
+#include "include.h"
+
 #define STDIN 0 
 
 
