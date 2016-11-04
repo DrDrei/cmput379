@@ -191,24 +191,24 @@ int main(int argc, char *argv[]) {
 				printf("something was recieved by the child server.\n");
 			}
 
-			// if( checkSel < 0) {
-			// 	perror("select");
+			if( checkSel < 0) {
+				perror("select");
 
-			// } else if (FD_ISSET(snew, &readfds)) {
+			} else if (FD_ISSET(snew, &readfds)) {
 						
-			// 	memset(buffer, 0, 255);
-			// 	recvCheck = recv(snew, buffer, sizeof(buffer), 0);
+				memset(buffer, 0, 255);
+				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
 
-			// 			// keep this??? if we ctrl-c it will keep printing 0 otherwise
-			// 	if(buffer[0] == 0) { continue; }
+						// keep this??? if we ctrl-c it will keep printing 0 otherwise
+				if(buffer[0] == 0) { continue; }
 
-			// 			//printf("recvCheck is %d\n", recvCheck);
-			// 			// testing	
-			// 	printf("Server with pid %d Recieved Message: \n", getpid());
-			// 			// there is a god dammed return carriage here. im thinking we 
-			// 			// user buffer[0] to find it and set that byte to something else
-			// 	memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
-			// 	printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
+						//printf("recvCheck is %d\n", recvCheck);
+						// testing	
+				printf("Server with pid %d Recieved Message: \n", getpid());
+						// there is a god dammed return carriage here. im thinking we 
+						// user buffer[0] to find it and set that byte to something else
+				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
+				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
 						
 						//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
 // 			} else if (checkSel4 == 0) { 
@@ -218,24 +218,24 @@ int main(int argc, char *argv[]) {
 // 				//read(fdList[userCount2-1][0], &updateMessage, sizeof(updateMessage));
 // 				printf("THERE IS AN UPDATE MES %s\n", updateMessage+2);
 
-			// } else {
-			// 	printf("I have exited\n");
-			// 	fflush(0);
+			} else {
+				printf("I have exited\n");
+				fflush(0);
 
 						
-			// 	//memset(updateMessage + (int)buffer[0], 0, 1);
-			// 	updateMessage[0] = 0x01; // set first byte to indicate closing connection
-			// 	printf("username is.... %s\n", username+1);
+				//memset(updateMessage + (int)buffer[0], 0, 1);
+				updateMessage[0] = 0x01; // set first byte to indicate closing connection
+				printf("username is.... %s\n", username+1);
 
-			// 	// copy over the username
-			// 	memset(updateMessage, 0, 255);
-			// 	memcpy(updateMessage+1, username, sizeof(updateMessage));
-			// 	printf("Size of updatemessage %d\n", sizeof(updateMessage));
-			// 	write(fdList[userCount2-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
-			// 	printf("Finished writing...\n");
-			// 	close(snew);
-			// 	exit(0);
-			// }
+				// copy over the username
+				memset(updateMessage, 0, 255);
+				memcpy(updateMessage+1, username, sizeof(updateMessage));
+				printf("Size of updatemessage %d\n", sizeof(updateMessage));
+				write(fdList[userCount2-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
+				printf("Finished writing...\n");
+				close(snew);
+				exit(0);
+			}
 		} // end of child server while loop
 	}
 }
