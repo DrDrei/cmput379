@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
     struct timeval tv = {30, 0};
     struct timeval tv2 = {5, 0};
     struct timeval tv3 = {1, 0};
+    struct timeval tv4 = {1, 0};
     fd_set readfds, readfds2, readfds3;
 	FD_ZERO(&readfds);
 	FD_ZERO(&readfds2);
@@ -70,8 +71,8 @@ int main(int argc, char *argv[]) {
 	int pid; // used to fork process
 	int fd[2], fd2[2]; // file descriptors
 	int parentVal = 0;
-	pipe(fd);
-	int checkSel2, checkSel3;
+	//pipe(fd);
+	int checkSel2, checkSel3, checkSel4;
 
 	int fdList[10][2];
 
@@ -90,14 +91,14 @@ int main(int argc, char *argv[]) {
 
 				break;
 	        } else {
-	        	int j;
-	        	for(j = 0; j < userCount; ++j){
+	        	int j, k;
+	        	for(j = 0; j < userCount2; ++j){
 
 	        	 	struct timeval tv3 = {1,0};
-	        	 	checkSel3 = select(fd[j]+1, &readfds3, NULL, NULL, &tv3);
+	        	 	checkSel3 = select(fdList[j][0], &readfds3, NULL, NULL, &tv3);
 	        	 	if(checkSel3 < 0){
 	        	 		perror("select3");
-	        	 	} else if (checkSel3 == 0) {
+	        	 	} else if (checkSel3 == 0) { // there are things in the pipe
 	        	 		
 	        	 		--userCount;
 	        	 		memset(updateMessage, 0, sizeof(updateMessage));
@@ -106,6 +107,10 @@ int main(int argc, char *argv[]) {
 	        	 		//printf("Index before: %d -- ", j);
 	        	 		//printf("%s\n", updateMessage+2);
 	        	 		userListHead = listRemove(userListHead, updateMessage+2);
+	        	 		for(k = 0; k < userCount2; ++j) {
+	        	 			write(fdList[k][1], &updateMessage, sizeof(updateMessage));
+	        	 		}
+
 	        	 		listPrint(userListHead);
 	        	 		//printf("Time out %s\n", updateMessage+2);
 
@@ -155,6 +160,7 @@ int main(int argc, char *argv[]) {
 		pipe(fdList[userCount]);
 
 		++userCount;
+		++userCount2;
 // 		for(size_t i = 0; i < userCount; ++i) {
 // 			printf("%s\n", usernameArray[i]);	
 // 		}
@@ -168,22 +174,13 @@ int main(int argc, char *argv[]) {
 		} else if (pid > 0) { // this is the parent (main) server
 
 			close(snew); // we dont need the main server to be connected
-			
 			// this is for user joining
-			memcpy(&updateMessage, username, sizeof(updateMessage));
-		
-			write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage));
-			
-			//printf("User count %d\n", userCount);
+			//memcpy(&updateMessage, username, sizeof(updateMessage));
+			//write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage));
 
 		} else if (pid == 0) { // child server
-
-			//printf("I am a CHILD server with pid %d -- ", getpid());
-			//printf("User count %d\n", userCount);
 			// testing pipe usage
-			read(fdList[userCount-1][0], &updateMessage, sizeof(updateMessage));	
-
-			//printf("Parent has sent a message %s\n", updateMessage+1);
+			//read(fdList[userCount-1][0], &updateMessage, sizeof(updateMessage));	
 
 		}
 
@@ -196,6 +193,8 @@ int main(int argc, char *argv[]) {
 
 		while(!pid) {
 
+		
+	
 			struct timeval tv = {7, 0}; // reset timer
 			FD_SET(snew, &readfds);
 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
@@ -203,40 +202,44 @@ int main(int argc, char *argv[]) {
 				perror("select");
 
 			} else if (FD_ISSET(snew, &readfds)) {
-				
+						
 				memset(buffer, 0, 255);
 				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
 
-				// keep this??? if we ctrl-c it will keep printing 0 otherwise
-				if(buffer[0] == 0) { continue; }
+						// keep this??? if we ctrl-c it will keep printing 0 otherwise
+			if(buffer[0] == 0) { continue; }
 
-				//printf("recvCheck is %d\n", recvCheck);
-				// testing	
+						//printf("recvCheck is %d\n", recvCheck);
+						// testing	
 				printf("Server with pid %d Recieved Message: \n", getpid());
-				// there is a god dammed return carriage here. im thinking we 
-				// user buffer[0] to find it and set that byte to something else
+						// there is a god dammed return carriage here. im thinking we 
+						// user buffer[0] to find it and set that byte to something else
 				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
 				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
-				
-				//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
+						
+						//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
 
 			} else {
 				printf("I have exited\n");
 				fflush(0);
 
-				
-				//memset(updateMessage + (int)buffer[0], 0, 1);
+						
+						//memset(updateMessage + (int)buffer[0], 0, 1);
 				updateMessage[0] = 0x01; // set first byte to indicate closing connection
 				printf("username is.... %s\n", username+1);
 
-				// copy over the username
+						// copy over the username
 				memcpy(updateMessage+1, username, sizeof(updateMessage));
-				
+						
 				write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
 
 				close(snew);
 				exit(0);
 			}
+
+							
+
+			
 
 			
 		}
@@ -245,9 +248,69 @@ int main(int argc, char *argv[]) {
 	}
 }
 
+	// struct timeval tv4 = {2, 0}; // reset timer
+	// 		//FD_SET(snew, &readfds);
+	// 		checkSel4 = select(fdList[userCount-1][0], &readfds3, NULL, NULL, &tv4);
+	// 		if( checkSel4 < 0) {
+	// 			perror("select4");
+
+	// 		} else if (checkSel4 == 0) { // there are things in the pipe
+	// 			printf("There are things in the pipe\n");
+	// 			//printf("Index before: %d -- ", j);
+
+	        	 		
+				
+	// 		} else { // nothing in the pipe
+	// 			printf("Nothing in the pipe\n");
+	// 			read(fdList[userCount-1][0], &updateMessage, sizeof(updateMessage));	
+			
+	// 			printf("Message is a username? %s\n", updateMessage+2);
+
+	// 		}
 
 
 
 
+// struct timeval tv = {7, 0}; // reset timer
+// 			FD_SET(snew, &readfds);
+// 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
+// 			if( checkSel < 0) {
+// 				perror("select");
 
+// 			} else if (FD_ISSET(snew, &readfds)) {
+				
+// 				memset(buffer, 0, 255);
+// 				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
 
+// 				// keep this??? if we ctrl-c it will keep printing 0 otherwise
+// 				if(buffer[0] == 0) { continue; }
+
+// 				//printf("recvCheck is %d\n", recvCheck);
+// 				// testing	
+// 				printf("Server with pid %d Recieved Message: \n", getpid());
+// 				// there is a god dammed return carriage here. im thinking we 
+// 				// user buffer[0] to find it and set that byte to something else
+// 				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
+// 				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
+				
+// 				//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
+
+// 			} else {
+// 				printf("I have exited\n");
+// 				fflush(0);
+
+				
+// 				//memset(updateMessage + (int)buffer[0], 0, 1);
+// 				updateMessage[0] = 0x01; // set first byte to indicate closing connection
+// 				printf("username is.... %s\n", username+1);
+
+// 				// copy over the username
+// 				memcpy(updateMessage+1, username, sizeof(updateMessage));
+				
+// 				write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
+
+// 				close(snew);
+// 				exit(0);
+// 			}
+
+			
