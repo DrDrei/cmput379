@@ -29,11 +29,11 @@ int main(int argc, char *argv[]) {
     struct timeval tv2 = {5, 0};
     struct timeval tv3 = {1, 0};
     struct timeval tv4 = {1, 0};
-    fd_set readfds, readfds2, readfds3;
+    fd_set readfds, readfds2, readfds3, readfds4;
 	FD_ZERO(&readfds);
 	FD_ZERO(&readfds2);
 	FD_ZERO(&readfds3);
-
+	FD_ZERO(&readfds4);
 
 
 	if (argc == 2) { // check for command line arg of portnumber
@@ -88,15 +88,20 @@ int main(int argc, char *argv[]) {
 	        		// check for update messages
 	        	 	struct timeval tv3 = {2,0}; // reset timer to check for update messages
 	        	 	checkSel3 = select(fdList[j][0], &readfds3, NULL, NULL, &tv3);
-
+	        	 	printf("User count = %d\n", userCount2);
 	        	 	if(checkSel3 < 0){
 	        	 		perror("select3");
 	        	 	} else if (checkSel3 == 0) { // there is an update message
 	        	 		
+	        	 		if(userCount == 0) {
+	        	 			continue;
+	        	 		}
 	        	 		--userCount;
 	        	 		memset(updateMessage, 0, sizeof(updateMessage));
 	        	 		read(fdList[j][0], &updateMessage, sizeof(updateMessage));
+	        	 		printf("The update message to remove: %s\n", updateMessage+2);
 	        	 		userListHead = listRemove(userListHead, updateMessage+2);
+	        	 		//close(fdList[j]);
 
 	        	 		// print out what we read first, then check what the fuck is going on
 
@@ -104,12 +109,14 @@ int main(int argc, char *argv[]) {
 	        	 		//pipe the update message to all child processes
 	        	 		// FOUND OUT WHY
 	        	 		// NO SHIT WE SEGFAULT HERE, THE CHILD SERVERS DONT READ FROM IT
-
-	        	 		// for(k = 0; k < userCount2; ++k) {
+	        	 		printf("Did we write correctly\n");
+	        	 		for(k = 0; k < userCount2; ++k) {
 	        	 			
-	        	 		// 	write(fdList[k][1], &updateMessage, sizeof(updateMessage));
+	        	 		 	write(fdList[k][1], &updateMessage, sizeof(updateMessage));
 
-	        	 		// }
+	        	 		}
+	        	 		printf("We wrote correctly????\n");
+	        	 		
 	        	 		// printf("seghere?\n");
 
 	        	 		//degbugging
@@ -170,12 +177,17 @@ int main(int argc, char *argv[]) {
 
 		int recvCheck, checkSel;
 
-		while(!pid) { // non parent server
+		while(!pid) { // child server
 	
 
 			struct timeval tv = {7, 0}; // reset timer
 			FD_SET(snew, &readfds);
+			FD_SET(fdList[userCount2-1][0], &readfds);
+
 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
+
+			//checkSel = select(fdList[userCount2-1][0], &readfds4, NULL, NULL, &tv);
+
 			if( checkSel < 0) {
 				perror("select");
 
@@ -185,7 +197,7 @@ int main(int argc, char *argv[]) {
 				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
 
 						// keep this??? if we ctrl-c it will keep printing 0 otherwise
-			if(buffer[0] == 0) { continue; }
+				if(buffer[0] == 0) { continue; }
 
 						//printf("recvCheck is %d\n", recvCheck);
 						// testing	
@@ -197,6 +209,12 @@ int main(int argc, char *argv[]) {
 						
 						//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
 
+			} else if (FD_ISSET(fdList[userCount2-1][0], &readfds)) { 
+				// check for activity in file descriptor
+				printf("We are hanging where the child server tries to read\n");
+				read(fdList[userCount2-1][0], &updateMessage, sizeof(updateMessage));
+				printf("THERE IS AN UPDATE MES %s\n", updateMessage+2);
+
 			} else {
 				printf("I have exited\n");
 				fflush(0);
@@ -207,8 +225,10 @@ int main(int argc, char *argv[]) {
 				printf("username is.... %s\n", username+1);
 
 				// copy over the username
+				memset(updateMessage, 0, 255);
 				memcpy(updateMessage+1, username, sizeof(updateMessage));
-				write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
+				printf("Size of updatemessage %d\n", sizeof(updateMessage));
+				write(fdList[userCount2-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
 				
 				close(snew);
 				exit(0);

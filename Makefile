@@ -1,7 +1,7 @@
 CC = gcc
 
 # remove if not needed
-CFLAGS =
+CFLAGS = -Wall
 
 DEPS =
 
