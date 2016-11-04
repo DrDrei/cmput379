@@ -38,8 +38,13 @@ int main(int argc, char *argv[]) {
 	*/
     struct timeval tv = {30, 0};
     struct timeval tv2 = {5, 0};
-    fd_set readfds, readfds2;
-	//FD_ZERO(&readfds);
+    struct timeval tv3 = {1, 0};
+    fd_set readfds, readfds2, readfds3;
+	FD_ZERO(&readfds);
+	FD_ZERO(&readfds2);
+	FD_ZERO(&readfds3);
+
+
 
 	if (argc == 2) {
 		portname = atoi(argv[1]);
@@ -66,7 +71,9 @@ int main(int argc, char *argv[]) {
 	int fd[2], fd2[2]; // file descriptors
 	int parentVal = 0;
 	pipe(fd);
-	int checkSel2;
+	int checkSel2, checkSel3;
+
+	int fdList[10][2];
 
 	while (1) {
 		fromlength = sizeof (from);
@@ -83,14 +90,30 @@ int main(int argc, char *argv[]) {
 
 				break;
 	        } else {
+	        	int j;
+	        	for(j = 0; j < userCount; ++j){
 
-	        	// check for removals here
+	        	 	struct timeval tv3 = {1,0};
+	        	 	checkSel3 = select(fd[j]+1, &readfds3, NULL, NULL, &tv3);
+	        	 	if(checkSel3 < 0){
+	        	 		perror("select3");
+	        	 	} else if (checkSel3 == 0) {
 
+	        	 		read(fdList[j][0], &updateMessage, 1);
+	        	 		read(fdList[j][0], &updateMessage+1, updateMessage[0]);
+	        	 		printf("Index: %d\n", j);
+	        	 		printf("Time out %s\n", updateMessage+1);
+	        	 	} else { // no activity
+	        	 		printf("No activity\n");
+	        	 		break;
+	        	 	}
+	        	// 	// check for removals here
+	        		
 
-	        	// check if there is an update message
-	        	//read(fd[0], &updateMessage, sizeof(updateMessage));
-	        	//printf("Time out %s\n", updateMessage+2);
-	            
+	        	// 	// check if there is an update message
+	        	// 	//read(fd[0], &updateMessage, sizeof(updateMessage));
+	        		
+	            }
 	         }
 
 		}
@@ -112,15 +135,6 @@ int main(int argc, char *argv[]) {
 		fflush(0);
 		recv(snew, username+1, messageLength, 0); // recieve the username
 		printf("My recieved usename is: %s\n", username+1);
-
-		/*add user to dynamic array here*/		
-
-		// // yea list doesn't really work
-		// userList[userCount] = (username+1);
-		// size_t i;
-		// for(i = 0; i < userCount; ++i) {
-		// 	printf("%s\n", userList[i]);	
-		// }
 		
 		if(userCount == 0) {
 			userListHead = createNode(username+1);
@@ -128,6 +142,8 @@ int main(int argc, char *argv[]) {
 			listAppend(userListHead, username+1);
 		}
 		
+		pipe(fdList[userCount]);
+
 		++userCount;
 // 		for(size_t i = 0; i < userCount; ++i) {
 // 			printf("%s\n", usernameArray[i]);	
@@ -145,15 +161,19 @@ int main(int argc, char *argv[]) {
 			
 			// this is for user joining
 			memcpy(&updateMessage, username, sizeof(updateMessage));
-			write(fd[1], &updateMessage, sizeof(updateMessage));
+			//write(fd[1], &updateMessage, sizeof(updateMessage));
+			write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage));
+			printf("I want to send message: %s\n", updateMessage+1);
+
+			printf("User count %d\n", userCount);
 
 		} else if (pid == 0) { // child server
 
 			printf("I am a CHILD server with pid %d\n", getpid());
 			printf("hi\n");
-
+			printf("User count %d\n", userCount);
 			// testing pipe usage
-			read(fd[0], &updateMessage, sizeof(updateMessage));	
+			read(fdList[userCount-1][0], &updateMessage, sizeof(updateMessage));	
 
 			printf("Parent has sent a message %s\n", updateMessage+1);
 
@@ -170,7 +190,7 @@ int main(int argc, char *argv[]) {
 
 		while(!pid) {
 
-			struct timeval tv = {20, 0}; // reset timer
+			struct timeval tv = {10, 0}; // reset timer
 			FD_SET(snew, &readfds);
 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
 			if( checkSel < 0) {
@@ -201,7 +221,8 @@ int main(int argc, char *argv[]) {
 				memset(updateMessage + (int)buffer[0], 0, 1);
 				//memset(updateMessage, 2, 1);
 				// what is the size??????????//
-				write(fd[1], &updateMessage, messageLength+1); // write client message to pipe
+				printf("Usercount is %d\n", userCount);
+				write(fdList[userCount-1][1], &updateMessage, messageLength+1); // write client message to pipe
 
 				//printf("Update Message closing: %d, %s\n", updateMessage[0], updateMessage+2);
 				close(snew);
