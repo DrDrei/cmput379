@@ -32,12 +32,9 @@ int main(int argc, char *argv[]) {
     struct timeval tv2 = {5, 0};
     struct timeval tv3 = {1, 0};
     struct timeval tv4 = {1, 0};
-<<<<<<< HEAD
-    fd_set readfds, readfds2, readfds3, readfds4;
-=======
 
-    fd_set readfds, readfds2, readfds3;
->>>>>>> 9b9c56a2cab92b5c7671fd3e6b56493b929680eb
+    fd_set readfds, readfds2, readfds3, readfds4;
+
 	FD_ZERO(&readfds);
 	FD_ZERO(&readfds2);
 	FD_ZERO(&readfds3);
