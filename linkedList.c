@@ -11,10 +11,20 @@ typedef struct Node {
 Node * createNode(char * str) {
 
 	Node *node = malloc(sizeof(Node));
-	node->data = str;
+	//printf("The length of the input string is %d\n",strlen(str));
+	node->data = malloc(strlen(str)+1);
+	memcpy(node->data, str, strlen(str)+1);
 	node->next = 0;
 	node->previous = 0;
 	return node;
+
+
+	// Node *node = malloc(sizeof(Node));
+	// //printf("%",)
+	// node->data = str;
+	// node->next = 0;
+	// node->previous = 0;
+	// return node;
 
 } 
 // parameters are the head of list and the string
@@ -23,19 +33,24 @@ void listAppend(Node *node, char * str) {
 	Node *currentNode = node;
 	Node *previousNode;
 
-	printf("We are appending, there are already things in node:\n");
-	printf("%s\n", currentNode->data);
+	//printf("We are appending, there are already things in node:\n");
+	//printf("%s\n", currentNode->data);
 		
 	// find our last node
 	while(currentNode->next != 0) {
 		currentNode = currentNode->next;
-		printf("%s\n", currentNode->data);
+	//	printf("%s\n", currentNode->data);
 	
 	}
 
 	currentNode->next = createNode(str);
 	(currentNode->next)->previous = currentNode;
 
+}
+
+void deleteNode(Node *node) {
+	free(node->data);
+	free(node);
 }
 
 Node * listFind(Node *node, char *str) {
@@ -60,10 +75,14 @@ Node * listRemove(Node *node, char * str) {
 	Node * toRemove = listFind(node, str);
 	if(toRemove != 0) { // we found it
 		if(toRemove->previous == 0) { // head node is to be removed
-
-			printf("True\n");
+			if(toRemove->next == 0) { // the head node is the only node in the list
+				free(toRemove);
+				return 0;
+			}
+			//printf("True\n");
 			node = node->next; // set new head node
 			(toRemove->next)-> previous = 0;
+
 			free(toRemove);
 
 
@@ -81,22 +100,29 @@ Node * listRemove(Node *node, char * str) {
 
 void  listPrint(Node *node) {
 
-	Node *currentNode = node;
+	if(node != 0) {
 
-	printf("[ ");
-	printf("%s ", currentNode->data);	
-	
-	// find our last node
-	while(currentNode->next != 0) {
-		currentNode = currentNode->next;
-		printf("%s ", currentNode->data);
+		Node *currentNode = node;
+
+		printf("[ ");
+		printf("%s ", currentNode->data);	
 		
+		// find our last node
+		while(currentNode->next != 0) {
+			currentNode = currentNode->next;
+			printf("%s ", currentNode->data);
+			
+		}
+
+
+		printf("]\n");
+	} else {
+		printf("[ ]\n");
 	}
 
 
-	printf("]\n");
-
 }
+
 
 void listFree(Node * node) {
 

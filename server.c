@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
 
-	char * userList[256];
+	//char * userList[256];
 
 	//int * userCountPtr = &userCount;
 	//char ** usernameArray = malloc(userCount);
@@ -98,11 +98,17 @@ int main(int argc, char *argv[]) {
 	        	 	if(checkSel3 < 0){
 	        	 		perror("select3");
 	        	 	} else if (checkSel3 == 0) {
+	        	 		
+	        	 		--userCount;
+	        	 		memset(updateMessage, 0, sizeof(updateMessage));
+	        	 		read(fdList[j][0], &updateMessage, sizeof(updateMessage));
+	        	 		
+	        	 		//printf("Index before: %d -- ", j);
+	        	 		//printf("%s\n", updateMessage+2);
+	        	 		userListHead = listRemove(userListHead, updateMessage+2);
+	        	 		listPrint(userListHead);
+	        	 		//printf("Time out %s\n", updateMessage+2);
 
-	        	 		read(fdList[j][0], &updateMessage, 1);
-	        	 		read(fdList[j][0], &updateMessage+1, updateMessage[0]);
-	        	 		printf("Index: %d\n", j);
-	        	 		printf("Time out %s\n", updateMessage+1);
 	        	 	} else { // no activity
 	        	 		printf("No activity\n");
 	        	 		break;
@@ -134,12 +140,16 @@ int main(int argc, char *argv[]) {
 		//printf("Length of recieved thing is %d \n", messageLength);
 		fflush(0);
 		recv(snew, username+1, messageLength, 0); // recieve the username
-		printf("My recieved usename is: %s\n", username+1);
+		//printf("My recieved usename is: %s\n", username+1);
 		
 		if(userCount == 0) {
 			userListHead = createNode(username+1);
+			listPrint(userListHead);
+
 		} else {
 			listAppend(userListHead, username+1);
+			listPrint(userListHead);
+
 		}
 		
 		pipe(fdList[userCount]);
@@ -161,21 +171,19 @@ int main(int argc, char *argv[]) {
 			
 			// this is for user joining
 			memcpy(&updateMessage, username, sizeof(updateMessage));
-			//write(fd[1], &updateMessage, sizeof(updateMessage));
+		
 			write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage));
-			printf("I want to send message: %s\n", updateMessage+1);
-
-			printf("User count %d\n", userCount);
+			
+			//printf("User count %d\n", userCount);
 
 		} else if (pid == 0) { // child server
 
-			printf("I am a CHILD server with pid %d\n", getpid());
-			printf("hi\n");
-			printf("User count %d\n", userCount);
+			//printf("I am a CHILD server with pid %d -- ", getpid());
+			//printf("User count %d\n", userCount);
 			// testing pipe usage
 			read(fdList[userCount-1][0], &updateMessage, sizeof(updateMessage));	
 
-			printf("Parent has sent a message %s\n", updateMessage+1);
+			//printf("Parent has sent a message %s\n", updateMessage+1);
 
 		}
 
@@ -184,13 +192,11 @@ int main(int argc, char *argv[]) {
 		* in the while loop for the child process
 		*
 		*/
-		int connected = 1;
 		int recvCheck, checkSel;
-		printf("User count is:%d\n", userCount);
 
 		while(!pid) {
 
-			struct timeval tv = {10, 0}; // reset timer
+			struct timeval tv = {7, 0}; // reset timer
 			FD_SET(snew, &readfds);
 			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
 			if( checkSel < 0) {
@@ -218,13 +224,16 @@ int main(int argc, char *argv[]) {
 				printf("I have exited\n");
 				fflush(0);
 
-				memset(updateMessage + (int)buffer[0], 0, 1);
-				//memset(updateMessage, 2, 1);
-				// what is the size??????????//
-				printf("Usercount is %d\n", userCount);
-				write(fdList[userCount-1][1], &updateMessage, messageLength+1); // write client message to pipe
+				
+				//memset(updateMessage + (int)buffer[0], 0, 1);
+				updateMessage[0] = 0x01; // set first byte to indicate closing connection
+				printf("username is.... %s\n", username+1);
 
-				//printf("Update Message closing: %d, %s\n", updateMessage[0], updateMessage+2);
+				// copy over the username
+				memcpy(updateMessage+1, username, sizeof(updateMessage));
+				
+				write(fdList[userCount-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
+
 				close(snew);
 				exit(0);
 			}
