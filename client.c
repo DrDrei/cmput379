@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 	char * username = "usernameUndefined";
 	int messageLength = 0;
 	int portname = 2222;
-	
+
     struct timeval tv = {5, 0};
     fd_set readfds;
 	FD_ZERO(&readfds);
@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
 		portname = atoi(argv[1]);
       	username = argv[2];
    	}
+
 
 	if (host == NULL) {
 		perror ("Client: cannot get host description");
@@ -90,22 +91,16 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Timed out.\n"); // every five seconds
         }
-
 	}
 	close (s);	
-
 }
 
 
 void intHandler(int sig) {
-
 	char c;
-
 	signal(sig, SIG_IGN);
 	printf("You pressed ctrl-c?\n");
    	close(s);
     exit(0);
-
-
 }
 

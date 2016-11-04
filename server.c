@@ -99,20 +99,13 @@ int main(int argc, char *argv[]) {
 		recv(snew, messageLength, 1, 0); // frecieve the username
 		recv(snew, buffer, messageLength, 0); // frecieve the username
 		
-		//userList[userCount] = (username+1);
-// 		arrayAdd(usernameArray, userCountPtr, username+1);
-// 		printf("CHECK %s\n", username+1);
-// 		arrayAdd(usernameArray, userCountPtr, "tree");
 
-// 		arrayAdd(usernameArray, userCountPtr, "tree");
-// 		arrayAdd(usernameArray, userCountPtr, "tree");
 
-// arrayAdd(usernameArray, userCountPtr, "tree");
-// 		arrayAdd(usernameArray, userCountPtr, "tree");
-// arrayAdd(usernameArray, userCountPtr, "tree");
-// 		arrayAdd(usernameArray, userCountPtr, "tree");
-// arrayAdd(usernameArray, userCountPtr, "tree");
-// 		arrayAdd(usernameArray, userCountPtr, "tree");
+		userList[userCount] = (username+1);
+		size_t i;
+		for(i = 0; i < userCount; ++i) {
+			printf("%s\n", userList[i]);	
+		}
 
 
 // 		for(size_t i = 0; i < userCount; ++i) {
@@ -135,8 +128,10 @@ int main(int argc, char *argv[]) {
 			write(fd[1], &updateMessage, sizeof(updateMessage));
 		} else if (pid == 0) {
 			printf("I am a CHILD server with pid %d\n", getpid());
-			
-			read(fd[0], &updateMessage, sizeof(updateMessage));
+			printf("hi\n");
+
+			read(fd[0], &updateMessage, sizeof(updateMessage));	
+
 			printf("Parent has sent a message %s\n", updateMessage+2);
 
 		}
