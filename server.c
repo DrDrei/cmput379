@@ -6,10 +6,14 @@
 #include "linkedList.h"
 #include "include.h"
 
+void intHandler(int sig);
+int sock;
+FILE *filePtr;
+
 int main(int argc, char *argv[]) {
 	Node *userListHead;
 
-	int	sock, snew, fromlength;
+	int	snew, fromlength;
 	struct	sockaddr_in	master, from;
 	int portname = 2222;
 	
@@ -26,19 +30,23 @@ int main(int argc, char *argv[]) {
 	handshake[0] = (char *) 0xCF;
 	handshake[1] = (char *) 0xA7;
 
-
-
-    struct timeval tv = {30, 0}; //
-    struct timeval tv2 = {5, 0};
-    struct timeval tv3 = {1, 0};
-    struct timeval tv4 = {1, 0};
-
     fd_set readfds, readfds2, readfds3, readfds4;
 
 	FD_ZERO(&readfds);
 	FD_ZERO(&readfds2);
 	FD_ZERO(&readfds3);
 	FD_ZERO(&readfds4);
+
+	signal(SIGINT, intHandler);
+
+
+	char filename[50]; 
+	sprintf(filename, "server379%i.log", getpid());
+	filePtr = fopen(filename, "rb+");
+	if (filePtr == NULL) {
+		filePtr = fopen(filename, "wb");
+	}
+
 
 	if (argc == 2) { // check for command line arg of portnumber
 		portname = atoi(argv[1]);
@@ -89,7 +97,6 @@ int main(int argc, char *argv[]) {
 	        		// check for update messages
 	        	 	struct timeval tv3 = {2,0}; // reset timer to check for update messages
 	        	 	checkSel3 = select(fdList[j][0], &readfds3, NULL, NULL, &tv3);
-	        	 	printf("User count = %d\n", userCount2);
 	        	 	if(checkSel3 < 0){
 	        	 		perror("select3");
 	        	 	} else if (checkSel3 == 0) { // there is an update message
@@ -100,27 +107,16 @@ int main(int argc, char *argv[]) {
 	        	 		--userCount;
 	        	 		memset(updateMessage, 0, sizeof(updateMessage));
 	        	 		read(fdList[j][0], &updateMessage, sizeof(updateMessage));
-	        	 		printf("The update message to remove: %s\n", updateMessage+2);
 	        	 		userListHead = listRemove(userListHead, updateMessage+2);
-	        	 		//close(fdList[j]);
-
-	        	 		// print out what we read first, then check what the fuck is going on
 
 	        	 		// so i need to work on this part. it segfaults here
 	        	 		// pipe the update message to all child processes
 	        	 		// FOUND OUT WHY
 	        	 		// NO SHIT WE SEGFAULT HERE, THE CHILD SERVERS DONT READ FROM IT
-	        	 		printf("Did we write correctly\n");
 	        	 		for(k = 0; k < userCount2; ++k) {
 	        	 			printf("I want to write %s\n", updateMessage+2);
 	        	 		 	write(fdList[k][1], &updateMessage, sizeof(updateMessage));
 	        	 		}
-	        	 		printf("We wrote correctly????\n");
-	        	 		
-	        	 		// printf("seghere?\n");
-
-	        	 		//degbugging
-	        	 		//listPrint(userListHead);
 	        	 		
 	        	 	} else { // no activity
 	        	 		break; // keep waiting on more connections
@@ -145,15 +141,18 @@ int main(int argc, char *argv[]) {
 		// store the usernames in a linked list
 		if(userCount == 0) {
 			userListHead = createNode(username+1);
-			//listPrint(userListHead);
 		} else {
-			listAppend(userListHead, username+1);
-			//listPrint(userListHead);
+			if(listFind(userListHead,username+1)) {
+				// we found it
+				fprintf(filePtr, "User \"%s\" already exits in the list.\n", username+1);
+			} else {
+				fprintf(filePtr, "User \"%s\" added to list.\n", username+1);
+				listAppend(userListHead, username+1);
+			}
 		}
 		
 		// open pipe for child server
 		pipe(fdList[userCount2]);
-
 
 		++userCount;
 		++userCount2;
@@ -170,26 +169,18 @@ int main(int argc, char *argv[]) {
 			continue;
 		} else if (pid > 0) { // this is the parent (main) server
 			close(snew); // main server has no reason to still be connected to client
-		} else if (pid == 0) { // child server
-			// testing pipe usage
-		}
+		} 
 
 
-		int recvCheck, checkSel, checkSel4;
+		int recvCheck, checkSel;
 
 		while(!pid) { // child server
 	
-			struct timeval tv = {7, 0}; // reset timer
-			struct timeval tv4 = {1,0};
+			struct timeval tv = {30, 0}; // reset timer
 			FD_SET(snew, &readfds);
 			FD_SET(fdList[userCount2-1][0], &readfds);
 
-			// checkSel = select(snew+1, &readfds, NULL, NULL, &tv);
-
-			checkSel4 = select(fdList[userCount2-1][0]+1, &readfds4, NULL, NULL, NULL);
-			if (checkSel4 > 0) {
-				printf("something was recieved by the child server.\n");
-			}
+			checkSel = select(snew+1, &readfds, NULL, NULL, &tv);	
 
 			if( checkSel < 0) {
 				perror("select");
@@ -199,45 +190,29 @@ int main(int argc, char *argv[]) {
 				memset(buffer, 0, 255);
 				recvCheck = recv(snew, buffer, sizeof(buffer), 0);
 
-						// keep this??? if we ctrl-c it will keep printing 0 otherwise
 				if(buffer[0] == 0) { continue; }
-
-						//printf("recvCheck is %d\n", recvCheck);
-						// testing	
 				printf("Server with pid %d Recieved Message: \n", getpid());
-						// there is a god dammed return carriage here. im thinking we 
-						// user buffer[0] to find it and set that byte to something else
 				memset(buffer+ (int)buffer[0] , 0, 1); // sets the byte after the message to 0
-				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte
-						
-						//write(fd2[1], &buffer, sizeof(buffer)); // write client message to pipe
-// 			} else if (checkSel4 == 0) { 
-// //			} else if (FD_ISSET(fdList[userCount2-1][0], &readfds)) { 
-// 				// check for activity in file descriptor
-// 				printf("We are hanging where the child server tries to read\n");
-// 				//read(fdList[userCount2-1][0], &updateMessage, sizeof(updateMessage));
-// 				printf("THERE IS AN UPDATE MES %s\n", updateMessage+2);
-
+				printf("%s  -- Length: %d\n", buffer+1, (int) buffer[0]); // buffer+1 ignores first byte 
 			} else {
-				printf("I have exited\n");
 				fflush(0);
-
-						
-				//memset(updateMessage + (int)buffer[0], 0, 1);
 				updateMessage[0] = 0x01; // set first byte to indicate closing connection
-				printf("username is.... %s\n", username+1);
-
-				// copy over the username
 				memset(updateMessage, 0, 255);
 				memcpy(updateMessage+1, username, sizeof(updateMessage));
-				printf("Size of updatemessage %d\n", sizeof(updateMessage));
 				write(fdList[userCount2-1][1], &updateMessage, sizeof(updateMessage)); // write client message to pipe
-				printf("Finished writing...\n");
 				close(snew);
 				exit(0);
 			}
 		} // end of child server while loop
 	}
+}
+
+
+void intHandler(int sig) {
+	fprintf(filePtr, "Terminating...\n");
+	signal(sig, SIG_IGN);
+   	close(sock);
+    exit(0);
 }
 
 			

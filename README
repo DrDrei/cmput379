@@ -1,2 +1,8 @@
-To kill a process use
-ps -x | grep ./server | xargs kill
+Andrei Usenka and Jacky Chung
+
+Notes on the project:
+- messaging between server and client works but we had trouble implementing the forwarding to the rest of the clients
+- we store the clients in a linked list, but can't send them to clients due to above issue.
+- we created an interface for listing users via "/list" command that client would type in, but doesn't execute the command due to not being able to get list from server.
+- terminating with CTRL-C works
+- couldn't get select to branch 3 way?

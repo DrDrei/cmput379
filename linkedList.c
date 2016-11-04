@@ -1,3 +1,7 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 // Node struct and associated helper methods.
 
 typedef struct Node {
@@ -24,7 +28,6 @@ void deleteNode(Node *node) {
 // append a node with data = str to the tail of the list 
 void listAppend(Node *node, char * str) {
 	Node *currentNode = node;
-	Node *previousNode;
 		
 	// find our last node
 	while(currentNode -> next != 0) {

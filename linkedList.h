@@ -1,7 +1,6 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 
-#include "include.h"
 
 // A linked list that is used to hold the string of usernames
 

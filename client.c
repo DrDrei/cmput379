@@ -24,17 +24,17 @@ int main(int argc, char *argv[]) {
 	int messageLength = 0;
 	int portname = 2222;
 
-    struct timeval tv = {5, 0};
     fd_set readfds;
 	FD_ZERO(&readfds);
 
 	//signal
 	signal(SIGINT, intHandler);
 
-	host = gethostbyname ("localhost");
-	if (argc == 3) {
-		portname = atoi(argv[1]);
-      	username = argv[2];
+	host = gethostbyname("localhost");
+	if (argc == 4) {
+		host = gethostbyname(argv[1]);
+		portname = atoi(argv[2]);
+      	username = argv[3];
    	}
 
 
@@ -63,12 +63,10 @@ int main(int argc, char *argv[]) {
 	//handshake	
 	recv(s, &recieved, sizeof(recieved), 0);
 	if (recieved[0] == (char *) 0xCF && recieved[1] == (char *) 0xA7) {
-		fprintf (stderr, "Your Process ID: %d \n", getpid());
 		messageLength = formatMessage(username, buffer); 
-		printf("Username length is: %d -- buffer: %s\n", messageLength, buffer+1);	
+		printf("Username length is: %d Username buffer is: %s\n", messageLength, buffer+1);	
 		// sends the length followed by the username
 		send(s, buffer, messageLength+1, 0);
-
 	}
 	int checkSel;
 	// Connection Established, Messaging here.
@@ -86,25 +84,28 @@ int main(int argc, char *argv[]) {
 			fgets(message, 255, stdin);
 			messageLength = formatMessage(message, buffer);
 
-			send(s, buffer, messageLength+1, 0);
+			message[strcspn(message, "\n")] = '\0';
 
-// 			message[strcspn(message, "\n")] = '\0';
-
-// 			if (!strncmp(message, "/", 1)) {
-// 				if (!strcmp(message, "/help")) {
-// 					printf("Available functions:\n");
-// 					printf("/list - get a list of current users connected\n");
-// 				} else if (!strcmp(message, "/list")) {
-// 					// provide a list of users
-// 				} else {
-// 					printf("Please type in /help to see a list of functions\n");
-// 				}
-// 			} else {
-// 				//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
-// 			}
+			if (!strncmp(message, "/", 1)) {
+				if (!strcmp(message, "/help")) {
+					printf("Available functions:\n");
+					printf("/list - get a list of current users connected\n");
+					printf("/keepalive - retains the connections to server for another 30seconds.\n");
+				} else if (!strcmp(message, "/list")) {
+					// provide a list of users here
+				} else if (!strcmp(message, "/keepalive")){
+					printf("Keeping alive for 30seconds.\n");
+					memset(buffer, 0, sizeof(buffer));
+					send(s, buffer, 0, 1);
+					// send KA
+				} else {
+					printf("Please type in /help to see a list of functions\n");
+				}
+			} else {
+				//printf("My message \n %s", buffer+1); // +1 ignores the first byte (pointer arithmetic)
+				send(s, buffer, messageLength+1, 0);
+			}
 	
-        } else {
-            printf("Timed out.\n"); // every five seconds
         }
 	}
 	close (s);	
@@ -112,9 +113,7 @@ int main(int argc, char *argv[]) {
 
 
 void intHandler(int sig) {
-	char c;
 	signal(sig, SIG_IGN);
-	printf("You pressed ctrl-c?\n");
    	close(s);
     exit(0);
 }
